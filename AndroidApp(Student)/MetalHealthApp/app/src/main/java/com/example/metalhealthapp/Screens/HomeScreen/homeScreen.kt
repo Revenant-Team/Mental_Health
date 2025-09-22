@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -21,10 +22,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-@Preview(showSystemUi = true)
+//@Preview(showSystemUi = true)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(onStressCheckclick : () ->Unit,
+               modifier: Modifier = Modifier) {
 
         LazyColumn(
             modifier = modifier
@@ -37,7 +39,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 WelcomeCard()
             }
             item {
-                ActionButtons()
+                ActionButtons(onStressCheckclick)
             }
             item {
                 AchievementsSection()
@@ -178,12 +180,13 @@ fun WelcomeCard() {
 }
 
 @Composable
-fun ActionButtons() {
+fun ActionButtons(onStressCheckclick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         ActionButton(
+            onclick = onStressCheckclick,
             modifier = Modifier.weight(1f),
             title = "Stress Check",
             subtitle = "Quick assessment",
@@ -191,6 +194,7 @@ fun ActionButtons() {
             backgroundColor = Color(0xFF10B981)
         )
         ActionButton(
+            onclick = {},
             modifier = Modifier.weight(1f),
             title = "AI Counselor",
             subtitle = "Get instant help",
@@ -202,6 +206,7 @@ fun ActionButtons() {
 
 @Composable
 fun ActionButton(
+    onclick : ()-> Unit,
     modifier: Modifier = Modifier,
     title: String,
     subtitle: String,
@@ -209,7 +214,8 @@ fun ActionButton(
     backgroundColor: Color
 ) {
     Card(
-        modifier = modifier.height(100.dp),
+        modifier = modifier.height(100.dp)
+            .clickable(enabled = true, onClick = onclick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor

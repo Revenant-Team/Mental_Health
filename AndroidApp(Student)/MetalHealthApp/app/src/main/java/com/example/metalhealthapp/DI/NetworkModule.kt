@@ -1,6 +1,7 @@
 package com.example.metalhealthapp.DI
 
 import com.example.metalhealthapp.API.Apis
+import com.example.metalhealthapp.Repo.Repo
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,9 +19,15 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit () : Apis{
         return Retrofit.Builder()
-            .baseUrl("https://speedyserve-server.onrender.com/")
+            .baseUrl("https://mental-health-wpt3.onrender.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRepo(apis: Apis) : Repo{
+        return Repo(apis)
     }
 }

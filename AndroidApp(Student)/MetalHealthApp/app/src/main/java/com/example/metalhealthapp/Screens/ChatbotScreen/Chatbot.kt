@@ -2,6 +2,11 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 
+import android.view.ViewGroup
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +28,107 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+
+@Composable
+fun WebViewScreen(modifier: Modifier = Modifier) {
+    val mUrl = "https://www.stack-ai.com/embed/451d41e9-d95f-4ebb-8371-6d10b86fab68/b612108c-000a-4dc3-b5e0-67aac28479ce/68d0ff331b22506911cab3a3"
+
+    // Loading state
+    val isLoading = remember { mutableStateOf(true) }
+
+    Box(modifier = modifier.fillMaxSize()) {
+
+        AndroidView(factory = { context ->
+            WebView(context).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                settings.loadsImagesAutomatically = true
+
+                webViewClient = object : WebViewClient() {
+                    override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                        super.onPageStarted(view, url, favicon)
+                        isLoading.value = true
+                    }
+
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        isLoading.value = false
+                    }
+
+                    override fun shouldOverrideUrlLoading(
+                        view: WebView?,
+                        request: WebResourceRequest?
+                    ): Boolean {
+                        val url = request?.url.toString()
+                        return url.startsWith("https://google.com")
+                    }
+                }
+
+                webChromeClient = WebChromeClient()
+                loadUrl(mUrl)
+            }
+        }, update = { webView ->
+            webView.loadUrl(mUrl)
+        })
+
+        // Show a circular progress indicator while loading
+        if (isLoading.value) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White.copy(alpha = 0.6f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+    }
+}
+
+//@Composable
+//fun WebViewScreen(modifier: Modifier = Modifier) {
+//    val mUrl = "https://www.stack-ai.com/embed/451d41e9-d95f-4ebb-8371-6d10b86fab68/b612108c-000a-4dc3-b5e0-67aac28479ce/68d0ff331b22506911cab3a3"
+//
+//    AndroidView(factory = { context ->
+//        WebView(context).apply {
+//            layoutParams = ViewGroup.LayoutParams(
+//                ViewGroup.LayoutParams.MATCH_PARENT,
+//                ViewGroup.LayoutParams.MATCH_PARENT
+//            )
+//
+//            settings.javaScriptEnabled = true
+//            settings.domStorageEnabled = true
+//            settings.loadsImagesAutomatically = true
+//            webViewClient = CustomWebViewClient()
+//            webChromeClient = WebChromeClient() // Optional, for full JS support
+//        }
+//    }, update = {
+//        it.loadUrl(mUrl)
+//    },
+//        modifier = modifier.padding()
+//    )
+//}
+
+//class CustomWebViewClient : WebViewClient() {
+//    override fun shouldOverrideUrlLoading(
+//        view: WebView?,
+//        request: WebResourceRequest?
+//    ): Boolean {
+//        val url = request?.url.toString()
+//        // Block redirect to google.com (if needed)
+//        return if (url.startsWith("https://google.com")) {
+//            true
+//        } else {
+//            false
+//        }
+//    }
+//}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

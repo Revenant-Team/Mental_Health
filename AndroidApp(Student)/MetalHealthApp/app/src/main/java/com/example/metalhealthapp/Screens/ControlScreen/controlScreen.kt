@@ -2,8 +2,10 @@ package com.example.metalhealthapp.Screens.ControlScreen
 
 import ChatBotScreen
 import CounselorsScreen
+import CreatePostScreen
 import HomeScreen
 import PeerSupportScreen
+import WebViewScreen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,8 +39,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -48,11 +52,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.metalhealthapp.NavController.Screen
 import com.example.resourcehub.ResourceHubScreen
 
 
 @Composable
-fun ControlScreen(modifier: Modifier = Modifier) {
+fun ControlScreen(navController: NavController,
+                  modifier: Modifier = Modifier) {
     val selectedTab = remember { mutableStateOf("Home") }
 
     Scaffold(
@@ -63,7 +71,15 @@ fun ControlScreen(modifier: Modifier = Modifier) {
 //                "counsellor"->CounselorTopBar()
 //                "resource_hub"->ResourceHubTopBar()
 //            }
-            topBar(selectedTab.value)
+
+            when(selectedTab.value){
+//                "chatbot"-> topBar(selectedTab.value)
+                "Home"->topBar(selectedTab.value)
+                "Community"-> topBar(selectedTab.value)
+                "Counsellors"-> topBar(selectedTab.value)
+                "Resource Hub"->topBar(selectedTab.value)
+            }
+
 //            ChatBotTopBar(selectedTab.value)
 //            FlexibleTopAppBar(selectedTab.value)
         },
@@ -74,9 +90,16 @@ fun ControlScreen(modifier: Modifier = Modifier) {
 
     ) { paddingValues ->
         when (selectedTab.value) {
-            "Home" -> HomeScreen(modifier.padding(paddingValues))
-            "AI Assist" -> ChatBotScreen(modifier.padding(paddingValues))
-            "Community"->PeerSupportScreen(modifier.padding(paddingValues))
+            "Home" -> HomeScreen(onStressCheckclick = {navController.navigate(Screen.STRESSCHECK.name)},modifier.padding(paddingValues))
+            "AI Assist" -> WebViewScreen(modifier.padding(paddingValues))
+            "Community"-> {
+                    PeerSupportScreen(
+                        viewModel = hiltViewModel(),
+                        onCreatePostClick = { navController.navigate(route = Screen.CREATEPOST.name) },
+                        modifier = modifier.padding(paddingValues)
+                    )
+//                PeerSupportScreen(modifier.padding(paddingValues))
+            }
             "Counsellors" -> CounselorsScreen(modifier.padding(paddingValues))
             "Resource Hub" -> ResourceHubScreen(modifier.padding(paddingValues))
         }
