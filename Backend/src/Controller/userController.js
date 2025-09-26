@@ -1,126 +1,189 @@
-import User from '../Models/userModel.js';
 import jwt from 'jsonwebtoken';
+import User from '../Models/userModel.js'
+import Institute from '../Models/instituteModel.js';
 
-// Generate JWT Token
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { 
-    expiresIn: process.env.JWT_EXPIRE || '7d' 
-  });
-};
-
-// User SignUp
-export const signUp = async (req, res) => {
+// POST /api/auth/register
+export const register = async (req, res) => {
   try {
-    const {
-      email,
-      mobileno,
-      password,
-      role,
-      profile,
-      contactInfo
-    } = req.body;
+    const { email, username, password, instituteCode, profile } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ 
-      $or: [{ email }, { mobileno }] 
-    });
     
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }]
+    });
+
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'User with this email or mobile number already exists'
+        message: 'User with this email or username already exists'
       });
     }
 
-    // Create new user
-    const newUser = new User({
+    
+    const institute = await Institute.findOne({ code: instituteCode.toUpperCase() });
+    if (!institute) {
+      return res.status(400).json({
+        success: false,
+        message: 'Institute not found'
+      });
+    }
+
+    
+    const user = new User({
       email,
-      mobileno,
-      password,
-      role: role || 'student',
-      profile,
-      contactInfo
+      username,
+      hashedPassword: password, 
+      instituteId: institute._id,
+      profile: profile || {}
     });
 
-    await newUser.save();
+    await user.save();
 
-    // Generate token
-    const token = generateToken(newUser._id);
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET
+    );
 
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
-      token,
-      user: {
-        id: newUser._id,
-        email: newUser.email,
-        role: newUser.role,
-        profile: newUser.profile
+      data: {
+        token,
+        user: {
+          id: user._id,
+          email: user.email,
+          username: user.username,
+          institute: institute.name
+        }
       }
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Registration failed',
+      message: 'Server error during registration',
       error: error.message
     });
   }
 };
 
-// User SignIn
-export const signIn = async (req, res) => {
+// POST /api/auth/login
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
-    if (!email || !password) {
+    // Find user
+    const user = await User.findOne({ email }).populate('instituteId', 'name code');
+    if (!user) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email and password'
-      });
-    }
-
-    // Find user and include password for comparison
-    const user = await User.findOne({ email }).select('+password');
-    
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid credentials'
       });
     }
 
     // Check password
-    const isPasswordMatch = await user.comparePassword(password);
-    
-    if (!isPasswordMatch) {
-      return res.status(401).json({
+    const isValidPassword = await user.comparePassword(password);
+    if (!isValidPassword) {
+      return res.status(400).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid credentials'
       });
     }
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET
+    );
 
     res.json({
       success: true,
       message: 'Login successful',
-      token,
-      user: {
-        id: user._id,
-        email: user.email,
-        role: user.role,
-        profile: user.profile
+      data: {
+        token,
+        user: {
+          id: user._id,
+          email: user.email,
+          username: user.username,
+          institute: user.instituteId.name
+        }
       }
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Login failed',
+      message: 'Server error during login',
       error: error.message
+    });
+  }
+};
+
+// POST /api/auth/logout
+export const logout = async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      message: 'Logout successful'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error during logout'
+    });
+  }
+};
+
+// GET /api/auth/me
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .select('-hashedPassword')
+      .populate('instituteId', 'name code');
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          username: user.username,
+          profile: user.profile,
+          institute: user.instituteId,
+          createdAt: user.createdAt
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error fetching user profile'
+    });
+  }
+};
+
+// PUT /api/auth/profile
+export const updateProfile = async (req, res) => {
+  try {
+    const { profile } = req.body;
+    
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { 
+        profile: { ...req.user.profile, ...profile },
+        updatedAt: new Date()
+      },
+      { new: true }
+    ).select('-hashedPassword').populate('instituteId', 'name code');
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: { user }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error updating profile'
     });
   }
 };

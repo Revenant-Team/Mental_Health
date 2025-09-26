@@ -1,94 +1,61 @@
-// models/User.js
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-const UserSchema = new mongoose.Schema({
-  email: { 
-    type: String, 
-    required: true, 
-    unique: true,
-    trim: true,
-    lowercase: true
-  },
-  
-  mobileno: { 
-    type: String, 
-    required: true,
-    trim: true
-  },
-  
-  password: { 
-    type: String, 
-    required: true,
-    minLength: 6
-  },
-  
-  role: {
+const userSchema = new mongoose.Schema({
+  email: {
     type: String,
     required: true,
-    enum: ['student', 'counsellor', 'admin'],
-    default: 'student'
+    unique: true,
+    lowercase: true,
+    trim: true
   },
-  
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 30
+  },
+  hashedPassword: {
+    type: String,
+    required: true
+  },
+  instituteId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Institute',
+    required: true
+  },
   profile: {
-    firstname: { 
-      type: String, 
-      required: true,
-      trim: true
-    },
-    lastname: { 
-      type: String, 
-      required: true,
-      trim: true
-    },
-    dob: { 
-      type: Date, 
-      required: true
-    },
-    gender: {
-      type: String,
-      required: true,
-      enum: ['male', 'female', 'other']
-    },
-    instituteID: { 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: 'Institute', 
-      required: true 
-    },
-    department: { 
-      type: String, 
-      required: true,
-      trim: true
-    },
-    year: { 
-      type: Number, 
-      required: true,
-      min: 1,
-      max: 6
-    }
+    firstName: String,
+    lastName: String,
+    rollNumber: String,
+    course: String,
+    year: Number,
+    department: String
   },
-  
-  contactInfo: {
-    phone: String,
-    email: String,
-    alternateContact: String
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
-  
-}, { 
-  timestamps: true 
+}, {
+  timestamps: true
 });
 
 // Hash password before saving
-UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('hashedPassword')) return next();
+  this.hashedPassword = await bcrypt.hash(this.hashedPassword, 12);
   next();
 });
 
 // Compare password method
-UserSchema.methods.comparePassword = async function(password) {
-  return await bcrypt.compare(password, this.password);
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.hashedPassword);
 };
 
-const User = mongoose.model('User', UserSchema);
-export default User;
+export default mongoose.model('User', userSchema);

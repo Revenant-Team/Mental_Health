@@ -1,12 +1,15 @@
 import express from 'express';
-import { createPost ,fetchPosts,getPost} from '../Controller/postController.js';
-// import auth from '../Middleware/auth.js';
+import { authMiddleware } from '../Middleware/auth.js';
+import { getAllPosts,createPost,getMyPosts,getPostById,updatePost,deletePost } from '../Controller/postController.js';
 
 const postRouter = express.Router();
 
-
-postRouter.post('/create', createPost);
-postRouter.get('/posts', fetchPosts);
-postRouter.get('/posts/:id', getPost);
+// Post CRUD operations
+postRouter.get('/', getAllPosts);                    
+postRouter.post('/',authMiddleware, createPost);    
+postRouter.get('/my-posts', getMyPosts); 
+postRouter.get('/:postId', getPostById);             
+postRouter.put('/:postId', updatePost);   
+postRouter.delete('/:postId', deletePost); 
 
 export default postRouter;

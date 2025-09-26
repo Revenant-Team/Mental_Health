@@ -1,9 +1,13 @@
 import express from 'express';
-import { signIn,signUp } from '../Controller/userController.js';
+import { register, login, logout, getMe, updateProfile } from '../Controller/userController.js';
+import { authMiddleware } from '../Middleware/auth.js';
 
 const userRouter = express.Router();
 
-userRouter.post('/signup', signUp);
-userRouter.post('/signin', signIn);
+userRouter.post('/register', register);
+userRouter.post('/login', login);
+userRouter.post('/logout', logout);
+userRouter.get('/me', authMiddleware, getMe);
+userRouter.put('/profile', authMiddleware, updateProfile);
 
 export default userRouter;

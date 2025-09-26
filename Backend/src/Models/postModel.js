@@ -1,68 +1,81 @@
-// models/ForumPost.js
 import mongoose from 'mongoose';
 
-const ForumPostSchema = new mongoose.Schema({
-  // Author Information - Made Optional
-  authorId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: false // Changed from required: true
+const postSchema = new mongoose.Schema({
+  anonymousId: {
+    type: String,
+    required: true,
+    index: true
   },
-  
-  // Institute Reference - Made Optional
-  instituteId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Institute', 
-    required: false // Changed from required: true
+  instituteId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Institute',
+    required: true,
+    index: true
   },
-  
-  // Post Content
+  title: {
+    type: String,
+    required: true,
+    maxlength: 200,
+    trim: true
+  },
   content: {
-    title: { 
-      type: String, 
-      required: true, 
-      trim: true,
-      maxLength: 200
-    },
-    body: { 
-      type: String, 
-      required: true, 
-      trim: true,
-      maxLength: 5000
-    },
-    category: {
-      type: String,
-      required: true,
-      enum: [
-        'academic_stress', 
-        'anxiety', 
-        'depression', 
-        'relationships', 
-        'family_issues', 
-        'self_esteem', 
-        'sleep_problems', 
-        'social_anxiety', 
-        'career_concerns', 
-        'general_support'
-      ]
-    },
-    tags: [{
-      type: String,
-      trim: true,
-      lowercase: true,
-      maxLength: 30
-    }]
+    type: String,
+    required: true,
+    maxlength: 2000,
+    trim: true
   },
-  
-  // Engagement
-  likes: { 
-    type: Number, 
-    default: 0 
-  }
-  
-}, { 
-  timestamps: true 
+  category: {
+    type: String,
+    enum: ['Academic', 'Personal', 'Social', 'Health', 'Career', 'Other'],
+    required: true
+  },
+  tags: [{
+    type: String,
+    maxlength: 30
+  }],
+  metadata: {
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now
+    },
+    isActive: {
+      type: Boolean,
+      default: true
+    },
+    priority: {
+      type: String,
+      enum: ['Low', 'Medium', 'High', 'Critical'],
+      default: 'Medium'
+    }
+  },
+  engagement: {
+    upvotes: {
+      type: Number,
+      default: 0
+    },
+    totalReplies: {
+      type: Number,
+      default: 0
+    },
+    views: {
+      type: Number,
+      default: 0
+    }
+  },
+  upvotedBy: [{
+    type: String // anonymousIds
+  }]
+}, {
+  timestamps: true
 });
 
-const ForumPost = mongoose.model('ForumPost', ForumPostSchema);
-export default ForumPost;
+// Indexes for performance
+postSchema.index({ anonymousId: 1, 'metadata.createdAt': -1 });
+postSchema.index({ instituteId: 1, 'metadata.createdAt': -1 });
+postSchema.index({ category: 1, 'metadata.createdAt': -1 });
+
+export default mongoose.model('Post', postSchema);
