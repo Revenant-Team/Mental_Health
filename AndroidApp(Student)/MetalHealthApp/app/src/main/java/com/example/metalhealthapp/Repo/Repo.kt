@@ -3,39 +3,137 @@ package com.example.metalhealthapp.Repo
 import com.example.metalhealthapp.API.Apis
 import com.example.metalhealthapp.Model.ForumResponse
 import com.example.metalhealthapp.Model.CreatePostReq
-import com.example.metalhealthapp.Model.createPostResponse
+import com.example.metalhealthapp.Model.CreatePostResponse
+import com.example.metalhealthapp.Model.GetPostByIdResponse
+import com.example.metalhealthapp.Model.GetPostRepliesResponse
+import com.example.metalhealthapp.Model.LoginResponse
+import com.example.metalhealthapp.Model.UserSignUpReq
+import com.example.metalhealthapp.Model.RegisterResponse
+import com.example.metalhealthapp.Model.UserSignInReq
+import org.json.JSONObject
 import javax.inject.Inject
 
 class Repo @Inject constructor(private val api: Apis) {
-    suspend fun getPosts() : Result<ForumResponse>{
+
+    //auth apis
+    suspend fun signUp(user: UserSignUpReq): Result<RegisterResponse> {
         return try {
-            val response = api.fetchPosts()
-            if (response.isSuccessful){
+            val response = api.registerUser(user)
+            if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it)
-                }?: Result.failure(Exception("Response body is null"))
-
-            }else{
-                Result.failure(Exception("Failed to fetch posts"))
+                } ?: Result.failure(Exception("Empty response body"))
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = try {
+                    val jsonObject = JSONObject(errorBody)
+                    jsonObject.getString("message")
+                } catch (e: Exception) {
+                    "Unknown error"
+                }
+                Result.failure(Exception("Sign-up failed: $errorMessage"))
             }
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Result.failure(e)
-            }
+        }
     }
 
-    suspend fun createPost(content: CreatePostReq) : Result<createPostResponse>{
+
+    suspend fun signIn(user: UserSignInReq): Result<LoginResponse> {
         return try {
-            val response = api.createPost(content)
-            if (response.isSuccessful){
+            val response = api.loginUser(user)
+            if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it)
-                }?: Result.failure(Exception("Response body is null"))
-                }else{
+                } ?: Result.failure(Exception("Empty response body"))
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = try {
+                    val jsonObject = JSONObject(errorBody)
+                    jsonObject.getString("message")
+                } catch (e: Exception) {
+                    "Unknown error"
+                }
+                Result.failure(Exception("Login failed: $errorMessage"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getPosts(): Result<ForumResponse> {
+        return try {
+            val response = api.fetchPosts()
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Response body is null"))
+
+            } else {
+                Result.failure(Exception("Failed to fetch posts"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun createPost(content: CreatePostReq): Result<CreatePostResponse> {
+        return try {
+            val response = api.createPost(content)
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Response body is null"))
+            } else {
                 Result.failure(Exception("Failed to create post "))
             }
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Result.failure(e)
         }
 
+    }
+
+    suspend fun getPostById(postId: String, authHeader: String): Result<GetPostByIdResponse> {
+        return try {
+            val response = api.getPostById(postId, authHeader)
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = try {
+                    val jsonObject = JSONObject(errorBody)
+                    jsonObject.getString("message")
+                } catch (e: Exception) {
+                    "Unknown error"
+                }
+                Result.failure(Exception("Failed to fetch post by ID: $errorMessage"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getReplybyId(postId: String) : Result<GetPostRepliesResponse>{
+        return try {
+            val response = api.getPostReplies(postId)
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = try {
+                    val jsonObject = JSONObject(errorBody)
+                    jsonObject.getString("message")
+                } catch (e: Exception) {
+                    "Unknown error"
+                }
+                Result.failure(Exception("Failed to fetch post by ID: $errorMessage"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

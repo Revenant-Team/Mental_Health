@@ -3,7 +3,6 @@ package com.example.metalhealthapp.Screens.PeerSupportScreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.metalhealthapp.Model.Content
 import com.example.metalhealthapp.Model.ForumPost
 import com.example.metalhealthapp.Model.ForumResponse
 import com.example.metalhealthapp.Repo.Repo

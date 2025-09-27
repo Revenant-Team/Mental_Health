@@ -32,7 +32,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 
 @Composable
 fun WebViewScreen(modifier: Modifier = Modifier) {
-    val mUrl = "https://www.stack-ai.com/embed/451d41e9-d95f-4ebb-8371-6d10b86fab68/b612108c-000a-4dc3-b5e0-67aac28479ce/68d0ff331b22506911cab3a3"
+    val mUrl = "https://www.stack-ai.com/embed/d2743774-abd0-4689-8861-facac12945e2/b707b263-f068-4893-b6d4-b09b288d5fb4/68d2081c88a40dbe30e335a6"
 
     // Loading state
     val isLoading = remember { mutableStateOf(true) }

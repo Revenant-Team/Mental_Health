@@ -96,6 +96,7 @@ fun ControlScreen(navController: NavController,
                     PeerSupportScreen(
                         viewModel = hiltViewModel(),
                         onCreatePostClick = { navController.navigate(route = Screen.CREATEPOST.name) },
+                        navController = navController,
                         modifier = modifier.padding(paddingValues)
                     )
 //                PeerSupportScreen(modifier.padding(paddingValues))

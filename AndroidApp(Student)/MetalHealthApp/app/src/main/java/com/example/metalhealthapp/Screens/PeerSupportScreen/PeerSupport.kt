@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -28,7 +29,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.metalhealthapp.Model.Content
+import androidx.navigation.NavController
+import com.example.metalhealthapp.NavController.Screen
 import com.example.metalhealthapp.Screens.PeerSupportScreen.CreatePostVM
 import com.example.metalhealthapp.Screens.PeerSupportScreen.PeerSupportVM
 
@@ -38,6 +40,7 @@ import com.example.metalhealthapp.Screens.PeerSupportScreen.PeerSupportVM
 fun PeerSupportScreen(
     viewModel : PeerSupportVM,
     modifier: Modifier = Modifier,
+    navController: NavController,
     onCreatePostClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -70,11 +73,12 @@ fun PeerSupportScreen(
                 items(posts){it->
                     PostCard(
                         timeAgo = "2h ago",
-                        content = it.content.body?:"",
-                        tags = it.content.tags?:emptyList(),
+                        content = it.content,
+                        tags = it.tags,
                         repliesCount = 8,
                         helpfulCount = 12,
                         avatarColor = blue,
+                        onPostClick = {navController.navigate(route = "${Screen.POSTDETAILSCREEN.name}/${it._id}")},
                         modifier= Modifier
                     )
                 }
@@ -116,7 +120,8 @@ fun PeerSupportScreen(
 
         // FAB positioned in bottom right
         FloatingActionButton(
-            onClick = onCreatePostClick,
+//            onClick = onCreatePostClick,
+            onClick = {},
             containerColor = purple,
             contentColor = Color.White,
             modifier = Modifier
@@ -179,16 +184,16 @@ fun CreatePostScreen(
                         onClick = {
 
                             if (postText.isNotBlank()) {
-                                val createPost = Content(
-                                    title = "test",
-                                    category = "academic_stress" ,
-                                    body = postText,
-                                    tags = listOf("anxiety")
-                                )
-                                viewModel.createPost(createPost){
-                                    onPostClick()
-                                    Toast.makeText(context,it,Toast.LENGTH_SHORT).show()
-                                }
+//                                val createPost = Content(
+//                                    title = "test",
+//                                    category = "academic_stress" ,
+//                                    body = postText,
+//                                    tags = listOf("anxiety")
+//                                )
+//                                viewModel.createPost(createPost){
+//                                    onPostClick()
+//                                    Toast.makeText(context,it,Toast.LENGTH_SHORT).show()
+//                                }
 
                             }
                         },
@@ -542,10 +547,12 @@ fun PostCard(
     repliesCount: Int,
     helpfulCount: Int,
     avatarColor: Color,
+    onPostClick: () -> Unit,
     modifier: Modifier
 ) {
     Card(
         modifier = modifier
+            .clickable(enabled = true, onClick = onPostClick)
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 16.dp),
         shape = RoundedCornerShape(12.dp),

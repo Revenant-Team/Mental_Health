@@ -1,6 +1,8 @@
 package com.example.metalhealthapp.NavController
 
 enum class Screen {
+                  SIGNUP,
+    SIGNIN,
     HOMESCREEN,
     PEERSCREEN,
     CHATBOTSCREEN,
@@ -8,5 +10,6 @@ enum class Screen {
     RESOURCEHUBSCREEN,
     CONTROLSCREEN,
     CREATEPOST,
-    STRESSCHECK
+    STRESSCHECK,
+    POSTDETAILSCREEN
 }
