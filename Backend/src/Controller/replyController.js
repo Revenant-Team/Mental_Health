@@ -1,43 +1,55 @@
 import Reply from '../Models/replyModel.js';
 import Post from '../Models/postModel.js';
 import { generateAnonymousId } from '../utlis/anonymousId.js';
-
+import mongoose from "mongoose"; 
 // GET /api/forum/posts/:postId/replies
+
+
 export const getPostReplies = async (req, res) => {
   try {
     const { postId } = req.params;
-    
+
+    // Validate ObjectId before querying
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid postId",
+      });
+    }
+
     const replies = await Reply.aggregate([
       {
         $match: {
-          postId: mongoose.Types.ObjectId(postId),
-          'metadata.isActive': true
-        }
+          postId: new mongoose.Types.ObjectId(postId), // ✅ fixed
+          "metadata.isActive": true,
+        },
       },
       {
-        $sort: { 'metadata.createdAt': 1 }
+        $sort: { "metadata.createdAt": 1 },
       },
       {
         $addFields: {
-          isMyReply: false // Will be updated in frontend based on anonymousId
-        }
-      }
+          isMyReply: false, // Will be updated in frontend
+        },
+      },
     ]);
 
-    // Build nested structure [web:115][web:118]
+    // Build nested structure
     const nestedReplies = buildReplyTree(replies);
 
     res.json({
       success: true,
-      data: { replies: nestedReplies }
+      data: { replies: nestedReplies },
     });
   } catch (error) {
+    console.error("Error in getPostReplies:", error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching replies'
+      message: "Error fetching replies",
     });
   }
 };
+
 
 // POST /api/forum/posts/:postId/replies
 export const replyToPost = async (req, res) => {
