@@ -12,15 +12,15 @@ export default function Schedule() {
 
   const sessions = {
     today: [
-      { name: "Aahana Tipnis", time: "11:00 AM", status: "Chatting", type: "🟣" },
-      { name: "Aditi Wagle", time: "12:00 PM", status: "In-person", type: "🟡" },
+      { name: "Suraj Shingade", time: "11:00 AM", status: "Chatting", type: "🟣" },
+      { name: "Yash Karande", time: "12:00 PM", status: "In-person", type: "🟡" },
     ],
     upcoming: [
-      { name: "Virat Desai", time: "3:00 PM", status: "In-person", type: "🟡" },
-      { name: "Adi Patel", time: "4:00 PM", status: "Video Call", type: "🔵" },
+      { name: "Virat Mane", time: "3:00 PM", status: "In-person", type: "🟡" },
+      { name: "Yash Kataria", time: "4:00 PM", status: "Video Call", type: "🔵" },
     ],
     completed: [
-      { name: "Priya Mehta", time: "10:00 AM", status: "Completed", type: "🟢" },
+      { name: "Apurva Dabhade", time: "10:00 AM", status: "Completed", type: "🟢" },
     ],
   };
 
