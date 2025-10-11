@@ -1,4 +1,5 @@
 
+import axios from 'axios';
 
 export const search = async(req,res)=>{
 const { tag } = req.body; 
@@ -15,7 +16,7 @@ const { tag } = req.body;
         part: 'snippet',
         q: tag,
         type: 'video',
-        maxResults: 5,
+        maxResults: 10,
         key: apiKey,
       }
     });
