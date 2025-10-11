@@ -9,7 +9,7 @@ let embedder;
 export default async function getLocalEmbedding(text) {
   if (!embedder) {
     console.log("🔄 Loading local embedding model (llama-text-embed-v2)...");
-  embedder = await pipeline('feature-extraction', 'Xenova/multilingual-e5-small');
+  embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     console.log("✅ Model loaded successfully (1024 dims).");
   }
 
