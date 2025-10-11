@@ -131,8 +131,11 @@ export const toggleReplyUpvote = async (req, res) => {
 export const getPostUpvotes = async (req, res) => {
   try {
     const { postId } = req.params;
+    const userId = req.user.id;
+    const anonymousId = generateAnonymousId(userId);
 
-    const post = await Post.findById(postId).select('engagement.upvotes');
+    // Fetch upvotes and upvotedBy array
+    const post = await Post.findById(postId).select('engagement.upvotes upvotedBy');
     if (!post) {
       return res.status(404).json({
         success: false,
@@ -140,9 +143,15 @@ export const getPostUpvotes = async (req, res) => {
       });
     }
 
+    // Check if current user has upvoted
+    const hasUpvoted = post.upvotedBy && post.upvotedBy.includes(anonymousId);
+
     res.json({
       success: true,
-      data: { upvotes: post.engagement.upvotes }
+      data: {
+        upvotes: post.engagement.upvotes,
+        upvoted: hasUpvoted
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -151,6 +160,7 @@ export const getPostUpvotes = async (req, res) => {
     });
   }
 };
+
 
 // GET /api/forum/replies/:replyId/upvotes
 export const getReplyUpvotes = async (req, res) => {
