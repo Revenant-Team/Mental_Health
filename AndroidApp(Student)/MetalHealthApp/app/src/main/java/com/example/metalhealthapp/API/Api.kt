@@ -78,4 +78,9 @@ interface Apis {
         @Path("postId") postId :String,
         @Header("token") authHeader: String
     ) : Response<FetchUpvotesResponse>
+
+    @POST("api/chat/chat_with_bot")
+    suspend fun chatWithBot(
+        
+    )
 }
