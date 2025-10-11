@@ -1,5 +1,7 @@
 package com.example.metalhealthapp.API
 
+import com.example.metalhealthapp.Model.ChatRequest
+import com.example.metalhealthapp.Model.ChatResponse
 import com.example.metalhealthapp.Model.ForumResponse
 import com.example.metalhealthapp.Model.CreatePostReq
 import com.example.metalhealthapp.Model.CreatePostResponse
@@ -81,6 +83,8 @@ interface Apis {
 
     @POST("api/chat/chat_with_bot")
     suspend fun chatWithBot(
-        
-    )
+        @Header("token") authHeader: String,
+        chatReq : ChatRequest
+    ) : Response<ChatResponse>
+
 }

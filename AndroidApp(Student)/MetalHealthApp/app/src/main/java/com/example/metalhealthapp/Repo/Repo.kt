@@ -1,6 +1,8 @@
 package com.example.metalhealthapp.Repo
 
 import com.example.metalhealthapp.API.Apis
+import com.example.metalhealthapp.Model.ChatRequest
+import com.example.metalhealthapp.Model.ChatResponse
 import com.example.metalhealthapp.Model.ForumResponse
 import com.example.metalhealthapp.Model.CreatePostReq
 import com.example.metalhealthapp.Model.CreatePostResponse
@@ -216,6 +218,31 @@ class Repo @Inject constructor(private val api: Apis) {
                     "Unknown error"
                 }
                 Result.failure(Exception("Failed fetch upvotes: $errorMessage"))
+            }
+        }catch (e : Exception){
+            Result.failure(e)
+        }
+    }
+
+    //chatbot
+    suspend fun ChatBot(authHeader: String,chatReq : ChatRequest) : Result<ChatResponse>{
+        return try {
+            val response = api.chatWithBot(authHeader = authHeader, chatReq = chatReq)
+
+            if (response.isSuccessful){
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
+            }else{
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = try {
+                    val jsonObject = JSONObject(errorBody)
+                    jsonObject.getString("message")
+                } catch (e: Exception) {
+                    "Unknown error"
+                }
+
+                Result.failure(Exception("Failed to chat with bot: $errorMessage"))
             }
         }catch (e : Exception){
             Result.failure(e)
