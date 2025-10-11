@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -44,17 +44,11 @@ const StudentPortalDashboard = () => {
     { name: "Dec", "PHQ-9": 4, "GAD-7": 3 },
   ];
 
-  const stressData = [
-    { name: "Event Stress", value: 35, color: "#ef4444" },
-    { name: "Sleep", value: 25, color: "#10b981" },
-    { name: "Social", value: 20, color: "#3b82f6" },
-    { name: "Personal", value: 15, color: "#f59e0b" },
-    { name: "Other", value: 5, color: "#8b5cf6" },
-  ];
+  const [stressData, setStressData] = useState([]);
 
   const departmentData = [
     { name: "Computer Science", score: 6.8, color: "#3b82f6", avgText: "Avg PHQ-9" },
-    { name: "Mechanical", score: 5.9, color: "#10b981", avgText: "Avg PHQ-9" },
+    { name: "Information Technology", score: 5.9, color: "#10b981", avgText: "Avg PHQ-9" },
     { name: "Electronics", score: 6.3, color: "#8b5cf6", avgText: "Avg PHQ-9" },
     { name: "Civil", score: 5.7, color: "#f97316", avgText: "Avg PHQ-9" },
   ];
@@ -99,11 +93,32 @@ const StudentPortalDashboard = () => {
     },
   ];
 
+  // Fetch trending tags data from backend
+  useEffect(() => {
+    fetch("http://localhost:4000/api/forum/trending/tags")
+      .then((res) => res.json())
+      .then((response) => {
+        if (response.success && response.data.trendingTags) {
+          console.log(response.data);
+          const colors = ["#ef4444", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6"];
+          const mappedData = response.data.trendingTags.map((tag, index) => ({
+            name: tag.tag,
+            value: parseFloat(tag.percent),
+            color: colors[index % colors.length],
+          }));
+          setStressData(mappedData);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching trending tags:", error);
+      });
+  }, []);
+
   // Utility: StatCard component
   const StatCard = ({ icon: Icon, value, label, trend, trendColor }) => (
     <motion.div
       whileHover={{ scale: 1.02 }}
-      className="bg-white p-5 rounded-2xl shadow-sm cursor-pointer border border-gray-100"
+      className="bg-white p-5 rounded-2xl shadow-sm cursor-pointer border border-gray-100 hover:shadow-md transition-all duration-200"
     >
       <div className="flex items-center justify-between">
         <div className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50">
@@ -115,6 +130,20 @@ const StudentPortalDashboard = () => {
       <p className="text-sm text-gray-600">{label}</p>
     </motion.div>
   );
+
+  // Custom tooltip content for PieChart
+  const CustomPieTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200 text-sm">
+          <p className="font-semibold text-gray-900">{data.name}</p>
+          <p className="text-gray-700">{data.value}% of total stress cases</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -130,10 +159,10 @@ const StudentPortalDashboard = () => {
             <button
               key={index}
               onClick={() => setActiveTab(item.label)}
-              className={`w-full flex items-center px-4 py-3 text-sm transition-colors ${
+              className={`w-full flex items-center px-4 py-3 text-sm transition-all duration-200 ${
                 activeTab === item.label
-                  ? "text-blue-600 border-l-4 border-blue-600 bg-blue-50"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "text-blue-600 border-l-4 border-blue-600 bg-blue-50 font-semibold"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               }`}
             >
               <item.icon className="w-4 h-4 mr-3" />
@@ -149,7 +178,7 @@ const StudentPortalDashboard = () => {
             return (
               <button
                 key={index}
-                className="w-full flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded"
+                className="w-full flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded transition-colors duration-200"
               >
                 <Icon className="w-4 h-4 mr-3" /> {item.label}
               </button>
@@ -172,11 +201,11 @@ const StudentPortalDashboard = () => {
             <span className="ml-4 text-sm text-gray-500">Updated: 1 mins ago</span>
           </div>
           <div className="flex items-center space-x-3">
-            <button className="flex items-center px-3 py-1 bg-gray-100 rounded text-sm">
+            <button className="flex items-center px-3 py-1 bg-gray-100 rounded text-sm hover:bg-gray-200 transition-colors duration-200">
               📊 {currentSem}
               <ChevronDown className="w-4 h-4 ml-1" />
             </button>
-            <button className="flex items-center px-4 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">
+            <button className="flex items-center px-4 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-all duration-200 shadow-sm">
               <Download className="w-4 h-4 mr-2" /> Export
             </button>
             <div className="flex items-center">
@@ -192,10 +221,34 @@ const StudentPortalDashboard = () => {
         <div className="p-6 space-y-6">
           {/* Stat Cards */}
           <div className="grid grid-cols-4 gap-4">
-            <StatCard icon={Users} value="87.3%" label="Students Screened" trend="+12%" trendColor="text-green-600" />
-            <StatCard icon={BarChart3} value="6.2" label="Avg PHQ-9 Score" trend="-8%" trendColor="text-red-600" />
-            <StatCard icon={Brain} value="34" label="Active Sessions" trend="+23%" trendColor="text-green-600" />
-            <StatCard icon={FileText} value="73.8%" label="Engagement Rate" trend="+15%" trendColor="text-green-600" />
+            <StatCard
+              icon={Users}
+              value="87.3%"
+              label="Students Screened"
+              trend="+12%"
+              trendColor="text-green-600"
+            />
+            <StatCard
+              icon={BarChart3}
+              value="6.2"
+              label="Avg PHQ-9 Score"
+              trend="-8%"
+              trendColor="text-red-600"
+            />
+            <StatCard
+              icon={Brain}
+              value="34"
+              label="Active Sessions"
+              trend="+23%"
+              trendColor="text-green-600"
+            />
+            <StatCard
+              icon={FileText}
+              value="73.8%"
+              label="Engagement Rate"
+              trend="+15%"
+              trendColor="text-green-600"
+            />
           </div>
 
           {/* Charts */}
@@ -205,7 +258,7 @@ const StudentPortalDashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="bg-white p-5 rounded-2xl shadow-sm"
+              className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100"
             >
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Wellness Trends</h3>
               <ResponsiveContainer width="100%" height={220}>
@@ -213,48 +266,113 @@ const StudentPortalDashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#6b7280" }} />
                   <YAxis domain={[0, 10]} tick={{ fontSize: 12, fill: "#6b7280" }} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="PHQ-9" stroke="#3b82f6" strokeWidth={2} />
-                  <Line type="monotone" dataKey="GAD-7" stroke="#10b981" strokeWidth={2} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="PHQ-9" 
+                    stroke="#3b82f6" 
+                    strokeWidth={2}
+                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: '#3b82f6' }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="GAD-7" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: '#10b981' }}
+                  />
                   <Legend />
                 </LineChart>
               </ResponsiveContainer>
             </motion.div>
 
-            {/* Stress Distribution */}
+            {/* Stress Distribution - Redesigned */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
-              className="bg-white p-5 rounded-2xl shadow-sm"
+              className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100"
             >
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Stress Distribution</h3>
-              <div className="flex items-center">
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Pie
-                      data={stressData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {stressData.map((entry, index) => (
-                        <Cell key={index} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `${value}%`} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="w-32 space-y-2 ml-4">
-                  {stressData.map((item, index) => (
-                    <div key={index} className="flex items-center text-xs">
-                      <div className="w-3 h-3 rounded-sm mr-2" style={{ backgroundColor: item.color }}></div>
-                      <span className="text-gray-700">{item.name}</span>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Stress Distribution</h3>
+                <span className="text-xs text-gray-500">By Topic Categories</span>
+              </div>
+              
+              <div className="flex flex-col lg:flex-row items-center justify-between w-full h-full gap-6">
+                {/* Pie Chart Container */}
+                <div className="w-full lg:w-1/2 flex items-center justify-center h-64 relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={stressData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={95}
+                        paddingAngle={1}
+                        stroke="none" // Remove black border
+                      >
+                        {stressData.map((entry, index) => (
+                          <Cell 
+                            key={index} 
+                            fill={entry.color}
+                            stroke="none" // Remove border on cells
+                            className="outline-none focus:outline-none" // Remove focus outline
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomPieTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  
+                  {/* Center Text */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                    <div className="text-2xl font-bold text-gray-900">
+                      {stressData.reduce((sum, item) => sum + item.value, 0)}%
                     </div>
-                  ))}
+                    <div className="text-xs text-gray-500">Total</div>
+                  </div>
+                </div>
+                
+                {/* Legend */}
+                <div className="w-full lg:w-1/2">
+                  <div className="space-y-1">
+                    {stressData.map((item, idx) => (
+                      <div 
+                        key={idx} 
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                      >
+                        <div className="flex items-center">
+                          <span 
+                            className="w-3 h-3 rounded-sm mr-3 shadow-sm" 
+                            style={{ background: item.color }}
+                          ></span>
+                          <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm font-semibold text-gray-900">{item.value}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Summary */}
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <p className="text-xs text-blue-700 font-medium">
+                      Highest stress category: {stressData.length > 0 ? stressData[0].name : 'N/A'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -267,20 +385,25 @@ const StudentPortalDashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
-              className="bg-white p-5 rounded-2xl shadow-sm"
+              className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100"
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Department Breakdown</h3>
-                <button className="text-blue-600 text-sm font-medium">View All</button>
+                <button className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors duration-200">
+                  View All →
+                </button>
               </div>
               <div className="space-y-3">
                 {departmentData.map((dept, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between py-2 hover:bg-gray-50 rounded px-2 cursor-pointer transition-colors"
+                    className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-all duration-200 border border-transparent hover:border-gray-200"
                   >
                     <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: dept.color }}></div>
+                      <div
+                        className="w-3 h-3 rounded-full mr-3 shadow-sm"
+                        style={{ backgroundColor: dept.color }}
+                      ></div>
                       <span className="text-sm font-medium text-gray-900">{dept.name}</span>
                     </div>
                     <div className="text-right">
@@ -297,20 +420,27 @@ const StudentPortalDashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
-              className="bg-white p-5 rounded-2xl shadow-sm"
+              className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100"
             >
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Alerts</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Recent Alerts</h3>
+                <button className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors duration-200">
+                  View All →
+                </button>
+              </div>
               <div className="space-y-3">
                 {recentAlerts.map((alert, index) => (
                   <div
                     key={index}
-                    className={`flex items-start p-3 rounded-lg cursor-pointer hover:shadow-sm transition-all ${alert.bgColor}`}
+                    className={`flex items-start p-3 rounded-lg cursor-pointer hover:shadow-sm transition-all duration-200 border border-transparent hover:border-gray-200 ${alert.bgColor}`}
                     onClick={() => setSelectedAlert(alert)}
                   >
-                    <alert.icon className={`w-4 h-4 mr-3 ${alert.iconColor}`} />
-                    <div>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${alert.iconColor} bg-white shadow-sm`}>
+                      <alert.icon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">{alert.title}</p>
-                      <p className="text-xs text-gray-600">{alert.subtitle}</p>
+                      <p className="text-xs text-gray-600 mt-1">{alert.subtitle}</p>
                     </div>
                   </div>
                 ))}

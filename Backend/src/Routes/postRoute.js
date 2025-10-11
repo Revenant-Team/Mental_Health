@@ -1,6 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../Middleware/auth.js';
-import { getAllPosts,createPost,getMyPosts,getPostById,updatePost,deletePost } from '../Controller/postController.js';
+import { getAllPosts,createPost,getMyPosts,getPostById,updatePost,deletePost,getTrendingTagsByMaxUpvotes } from '../Controller/postController.js';
 
 const postRouter = express.Router();
 
@@ -11,5 +11,7 @@ postRouter.get('/my-posts',authMiddleware, getMyPosts);
 postRouter.get('/:postId', getPostById);             
 postRouter.put('/:postId',authMiddleware, updatePost);   
 postRouter.delete('/:postId',authMiddleware, deletePost); 
+
+postRouter.get('/trending/tags', getTrendingTagsByMaxUpvotes);
 
 export default postRouter;

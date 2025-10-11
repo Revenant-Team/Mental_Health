@@ -292,3 +292,112 @@ export const getMyPosts = async (req, res) => {
     });
   }
 };
+
+
+
+
+// export const getTopTaggedUpvotes = async (req, res) => {
+//   try {
+//     // Step 1: Find post with max upvotes and one tag
+//     const topPost = await Post.findOne({ 'metadata.isActive': true })
+//       .sort({ 'engagement.upvotes': -1 })
+//       .select('title tags engagement.upvotes')
+//       .lean();
+
+//     const topTag = topPost?.tags?.[0] || null;
+
+//     // Step 2: Aggregate tags with their total upvotes
+//     const tagAggregation = await Post.aggregate([
+//       { $match: { 'metadata.isActive': true } },
+//       { $unwind: '$tags' },
+//       {
+//         $group: {
+//           _id: '$tags',
+//           totalUpvotes: { $sum: '$engagement.upvotes' }
+//         }
+//       },
+//       { $sort: { totalUpvotes: -1 } }
+//     ]);
+
+//     const totalUpvotesAllTags = tagAggregation.reduce((acc, tag) => acc + tag.totalUpvotes, 0);
+
+//     // Calculate percentage for top 5 tags
+//     const topTagsWithPercent = tagAggregation.slice(0, 5).map(tag => ({
+//       tag: tag._id,
+//       totalUpvotes: tag.totalUpvotes,
+//       percent: totalUpvotesAllTags ? ((tag.totalUpvotes / totalUpvotesAllTags) * 100).toFixed(2) : '0.00'
+//     }));
+
+//     res.json({
+//       success: true,
+//       data: {
+//         topPost: {
+//           title: topPost.title,
+//           topTag,
+//           upvotes: topPost.engagement.upvotes
+//         },
+//         trendingTags: topTagsWithPercent
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Error getting top tagged upvotes:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Error fetching trending tags and top post upvotes'
+//     });
+//   }
+// };
+
+
+
+
+export const getTrendingTagsByMaxUpvotes = async (req, res) => {
+  try {
+    // Find the maximum upvotes of any active post
+    const maxUpvotePost = await Post.findOne({ 'metadata.isActive': true })
+      .sort({ 'engagement.upvotes': -1 })
+      .select('engagement.upvotes')
+      .lean();
+
+    if (!maxUpvotePost) {
+      return res.json({ success: true, data: { trendingTags: [] } });
+    }
+
+    const maxUpvotes = maxUpvotePost.engagement.upvotes;
+
+    // Aggregate tags from posts with max upvotes
+    const tagCounts = await Post.aggregate([
+      { $match: { 'metadata.isActive': true, 'engagement.upvotes': maxUpvotes } },
+      { $unwind: '$tags' },
+      {
+        $group: {
+          _id: '$tags',
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+
+    // Calculate total tags count for percentage calculation
+    const totalTagCount = tagCounts.reduce((acc, tag) => acc + tag.count, 0);
+
+    // Format tags with percentage
+    const trendingTags = tagCounts.map(tag => ({
+      tag: tag._id,
+      count: tag.count,
+      percent: totalTagCount ? ((tag.count / totalTagCount) * 100).toFixed(2) : '0.00'
+    }));
+
+    res.json({
+      success: true,
+      data: { trendingTags }
+    });
+  } catch (error) {
+    console.error("Error fetching trending tags by max upvotes:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching trending tags"
+    });
+  }
+};
