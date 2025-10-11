@@ -2,6 +2,7 @@ import Post from '../Models/postModel.js';
 import Reply from '../Models/replyModel.js';
 import Upvote from '../Models/upvoteModel.js';
 import { generateAnonymousId } from '../utlis/anonymousId.js';
+import { upsertPostsToPinecone } from '../Scripts/convertPinecone.js';
 
 // GET /api/forum/posts
 export const getAllPosts = async (req, res) => {
@@ -108,6 +109,7 @@ export const createPost = async (req, res) => {
     });
 
     await post.save();
+    upsertPostsToPinecone();
 
     res.status(201).json({
       success: true,
@@ -193,6 +195,7 @@ export const updatePost = async (req, res) => {
     post.metadata.updatedAt = new Date();
 
     await post.save();
+    upsertPostsToPinecone();
 
     res.json({
       success: true,
@@ -232,6 +235,7 @@ export const deletePost = async (req, res) => {
 
     post.metadata.isActive = false;
     await post.save();
+    upsertPostsToPinecone();
 
     res.json({
       success: true,

@@ -17,6 +17,7 @@ const chatting = async (req, res) => {
           Authorization: `Bearer ${STACK_API_KEY}`,
           "Content-Type": "application/json",
         },
+        timeout: 30000, 
       }
     );
 
