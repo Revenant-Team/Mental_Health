@@ -51,25 +51,28 @@ fun PeerSupportScreen(
     val posts by viewModel.posts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var selectedChip by remember { mutableStateOf("All") }
-    LaunchedEffect(Unit) {
-        viewModel.fetchPosts{
-            Toast.makeText(context,it,Toast.LENGTH_SHORT).show()
+    LaunchedEffect(selectedChip) {
+        if (selectedChip == "All") {
+            viewModel.fetchPosts {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            }
+        } else if (selectedChip == "Recommended") {
+            viewModel.fetchRecommendedPosts(context, onSuccess = {}, onError = {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            })
         }
     }
-
-    LaunchedEffect(selectedChip) {
-        viewModel.fetchRecommendedPosts(context, onSuccess = {
-    }, onError = {
-        Toast.makeText(context,it,Toast.LENGTH_SHORT).show()
-            Log.d("PeerError",it.toString())
-        })}
 
     val purple = Color(0xFF7C3AED)
     val lightPurple = Color(0xFFF3F4F6)
     val blue = Color(0xFF3B82F6)
 
     Box(modifier = modifier.fillMaxSize()) {
-        if(posts.isEmpty() || isLoading ){
+        if(posts.isEmpty()){
+            Text(text = "Posts Will be added Soon",
+                fontSize = 20.sp,
+                modifier = Modifier.align(Alignment.Center))
+        }else if( isLoading ){
             CircularProgressIndicator(Modifier.align(Alignment.Center))
         }else{
             Log.d("posts",posts.toString())
