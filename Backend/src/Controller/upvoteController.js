@@ -156,8 +156,11 @@ export const getPostUpvotes = async (req, res) => {
 export const getReplyUpvotes = async (req, res) => {
   try {
     const { replyId } = req.params;
+    const userId = req.user.id; // Correct: use req.user, not user directly!
+    const anonymousId = generateAnonymousId(userId);
 
-    const reply = await Reply.findById(replyId).select('engagement.upvotes');
+    // Fetch upvotes and upvotedBy
+    const reply = await Reply.findById(replyId).select('engagement.upvotes upvotedBy');
     if (!reply) {
       return res.status(404).json({
         success: false,
@@ -165,9 +168,15 @@ export const getReplyUpvotes = async (req, res) => {
       });
     }
 
+    // Check if user has upvoted
+    const hasUpvoted = reply.upvotedBy && reply.upvotedBy.includes(anonymousId);
+
     res.json({
       success: true,
-      data: { upvotes: reply.engagement.upvotes }
+      data: {
+        upvotes: reply.engagement.upvotes,
+        upvoted: hasUpvoted
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -176,3 +185,4 @@ export const getReplyUpvotes = async (req, res) => {
     });
   }
 };
+

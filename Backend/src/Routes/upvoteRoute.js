@@ -13,6 +13,6 @@ const upvoteRouter = express.Router();
 upvoteRouter.post('/posts/:postId/upvote', authMiddleware, togglePostUpvote);  
 upvoteRouter.post('/replies/:replyId/upvote', authMiddleware, toggleReplyUpvote); 
 upvoteRouter.get('/posts/:postId/upvotes', getPostUpvotes);                    
-upvoteRouter.get('/replies/:replyId/upvotes', getReplyUpvotes);               
+upvoteRouter.get('/replies/:replyId/upvotes',authMiddleware, getReplyUpvotes);               
 
 export default upvoteRouter;
