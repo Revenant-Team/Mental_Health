@@ -55,7 +55,8 @@ fun NavController(modifier: Modifier = Modifier) {
             PostDetailScreen(
                 postId = postId ?: "",
                 viewModel = hiltViewModel(),
-                userid?:""
+                userid?:"",
+                onBackClick = {navController.navigateUp()}
             )
         }
     }

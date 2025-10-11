@@ -19,17 +19,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.metalhealthapp.Model.CreatePostReq
 import com.example.metalhealthapp.NavController.Screen
 import com.example.metalhealthapp.Screens.PeerSupportScreen.CreatePostVM
 import com.example.metalhealthapp.Screens.PeerSupportScreen.PeerSupportVM
@@ -72,6 +76,7 @@ fun PeerSupportScreen(
                 }
                 items(posts){it->
                     PostCard(
+                        title = it.title,
                         timeAgo = "2h ago",
                         content = it.content,
                         tags = it.tags,
@@ -120,8 +125,7 @@ fun PeerSupportScreen(
 
         // FAB positioned in bottom right
         FloatingActionButton(
-//            onClick = onCreatePostClick,
-            onClick = {},
+            onClick = onCreatePostClick,
             containerColor = purple,
             contentColor = Color.White,
             modifier = Modifier
@@ -184,6 +188,17 @@ fun CreatePostScreen(
                         onClick = {
 
                             if (postText.isNotBlank()) {
+                                val createPost = CreatePostReq(
+                                    title = "test",
+                                    category = "Academic" ,
+                                    content = postText,
+                                    tags = listOf("anxiety")
+                                )
+                                Log.d("createPost",createPost.toString())
+                                viewModel.createPost(context,createPost){
+                                    Toast.makeText(context,it,Toast.LENGTH_SHORT).show()
+                                    onPostClick()
+                                }
 //                                val createPost = Content(
 //                                    title = "test",
 //                                    category = "academic_stress" ,
@@ -539,8 +554,156 @@ fun TagChip(
     }
 }
 
+//@Composable
+//fun PostCard(
+//    timeAgo: String,
+//    content: String,
+//    tags: List<String>,
+//    repliesCount: Int,
+//    helpfulCount: Int,
+//    avatarColor: Color,
+//    onPostClick: () -> Unit,
+//    modifier: Modifier
+//) {
+//    Card(
+//        modifier = modifier
+//            .clickable(enabled = true, onClick = onPostClick)
+//            .fillMaxWidth()
+//            .padding(horizontal = 16.dp, vertical = 16.dp),
+//        shape = RoundedCornerShape(12.dp),
+//        colors = CardDefaults.cardColors(containerColor = Color.White),
+//        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+//    ) {
+//        Column(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(16.dp)
+//        ) {
+//            // Header
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Box(
+//                    modifier = Modifier
+//                        .size(32.dp)
+//                        .background(avatarColor, CircleShape),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    Text(
+//                        text = "A",
+//                        color = Color.White,
+//                        fontSize = 14.sp,
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                }
+//
+//                Spacer(modifier = Modifier.width(12.dp))
+//
+//                Text(
+//                    text = "Anonymous",
+//                    fontSize = 14.sp,
+//                    fontWeight = FontWeight.Medium,
+//                    color = Color.Black
+//                )
+//
+//                Spacer(modifier = Modifier.width(8.dp))
+//
+//                Box(
+//                    modifier = Modifier
+//                        .size(4.dp)
+//                        .background(Color(0xFF10B981), CircleShape)
+//                )
+//
+//                Spacer(modifier = Modifier.width(8.dp))
+//
+//                Text(
+//                    text = timeAgo,
+//                    fontSize = 12.sp,
+//                    color = Color.Gray
+//                )
+//            }
+//
+//            Spacer(modifier = Modifier.height(12.dp))
+//
+//            // Content
+//            Text(
+//                text = content,
+//                fontSize = 14.sp,
+//                color = Color.Black,
+//                lineHeight = 20.sp
+//            )
+//
+//            Spacer(modifier = Modifier.height(12.dp))
+//
+//            // Tags
+//            LazyRow(
+//                horizontalArrangement = Arrangement.spacedBy(8.dp)
+//            ) {
+//                items(tags.size) { index ->
+//                    Surface(
+//                        shape = RoundedCornerShape(12.dp),
+//                        color = Color(0xFFF3F4F6)
+//                    ) {
+//                        Text(
+//                            text = tags[index],
+//                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+//                            fontSize = 11.sp,
+//                            color = Color(0xFF7C3AED),
+//                            fontWeight = FontWeight.Medium
+//                        )
+//                    }
+//                }
+//            }
+//
+//            Spacer(modifier = Modifier.height(16.dp))
+//
+//            // Actions
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                horizontalArrangement = Arrangement.spacedBy(24.dp)
+//            ) {
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    Icon(
+//                        imageVector = Icons.Default.ChatBubbleOutline,
+//                        contentDescription = "Replies",
+//                        tint = Color.Gray,
+//                        modifier = Modifier.size(16.dp)
+//                    )
+//                    Spacer(modifier = Modifier.width(4.dp))
+//                    Text(
+//                        text = "$repliesCount replies",
+//                        fontSize = 12.sp,
+//                        color = Color.Gray
+//                    )
+//                }
+//
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    Icon(
+//                        imageVector = Icons.Default.ThumbUp,
+//                        contentDescription = "Helpful",
+//                        tint = Color.Gray,
+//                        modifier = Modifier.size(16.dp)
+//                    )
+//                    Spacer(modifier = Modifier.width(4.dp))
+//                    Text(
+//                        text = "$helpfulCount helpful",
+//                        fontSize = 12.sp,
+//                        color = Color.Gray
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
+
 @Composable
 fun PostCard(
+    title: String,
     timeAgo: String,
     content: String,
     tags: List<String>,
@@ -548,8 +711,11 @@ fun PostCard(
     helpfulCount: Int,
     avatarColor: Color,
     onPostClick: () -> Unit,
-    modifier: Modifier
+    modifier: Modifier = Modifier,
+    maxContentLines: Int = 1
 ) {
+    var isExpanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = modifier
             .clickable(enabled = true, onClick = onPostClick)
@@ -611,13 +777,68 @@ fun PostCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Content
+            // Title
             Text(
-                text = content,
-                fontSize = 14.sp,
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = Color.Black,
-                lineHeight = 20.sp
+                lineHeight = 22.sp
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Content with Read More functionality
+            Column {
+                Text(
+                    text = content,
+                    fontSize = 14.sp,
+                    color = Color.Black,
+                    lineHeight = 20.sp,
+                    maxLines = if (isExpanded) Int.MAX_VALUE else maxContentLines,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                // Check if content is truncated and show Read More
+                val textLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
+
+                Text(
+                    text = content,
+                    fontSize = 14.sp,
+                    color = Color.Black,
+                    lineHeight = 20.sp,
+                    maxLines = maxContentLines,
+                    overflow = TextOverflow.Ellipsis,
+                    onTextLayout = { textLayoutResult.value = it },
+                    modifier = Modifier.alpha(0f) // Invisible text to measure layout
+                )
+
+                val isTextTruncated = textLayoutResult.value?.hasVisualOverflow == true
+
+                if (isTextTruncated && !isExpanded) {
+                    Spacer(modifier = Modifier.height(1.dp))
+                    Text(
+                        text = "Read more",
+                        fontSize = 12.sp,
+                        color = Color(0xFF7C3AED),
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier
+                            .clickable { isExpanded = true }
+                            .padding(vertical = 4.dp)
+                    )
+                } else if (isExpanded) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Read less",
+                        fontSize = 12.sp,
+                        color = Color(0xFF7C3AED),
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier
+                            .clickable { isExpanded = false }
+                            .padding(vertical = 4.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -685,7 +906,6 @@ fun PostCard(
         }
     }
 }
-
 
 //@Preview(showBackground = true)
 //@Composable

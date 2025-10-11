@@ -1,6 +1,5 @@
 package com.example.metalhealthapp.Model
 
-import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 
 // ======================
@@ -59,12 +58,11 @@ data class Pagination(
 // ======================
 @Serializable
 data class CreatePostReq(
-    val anonymousId: String,
-    val instituteId: String,
     val title: String,
     val content: String,
     val category: String,
-    val tags: List<String> = emptyList()
+    val tags: List<String> = emptyList(),
+    val priority: String = "Medium"
 )
 
 // ======================
@@ -121,3 +119,23 @@ data class PostMetadata(
 //    val totalReplies: Int,
 //    val views: Int
 //)
+
+
+data class CreateUpvoteReponse(
+    val success: Boolean,
+    val message: String,
+    val data : UpvoteData
+)
+data class UpvoteData(
+    val upvoted : Boolean
+)
+
+data class FetchUpvotesResponse(
+    val success: Boolean,
+    val data: FetchUpvoteData
+)
+
+data class FetchUpvoteData(
+    val upvotes : Number,
+    val upvoted : Boolean
+)

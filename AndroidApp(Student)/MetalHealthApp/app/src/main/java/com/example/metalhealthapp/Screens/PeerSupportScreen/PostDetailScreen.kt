@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -105,15 +106,18 @@ fun PostDetailScreen(
     onBackClick: () -> Unit = {},
     onUpvotePost: (String) -> Unit = {},
     onUpvoteReply: (String) -> Unit = {},
-    onReply: (String, String?) -> Unit = { _, _ -> },
+//    onReply: (String, String?) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val post by viewModel.post.collectAsState()
     val replies by viewModel.replies.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isUpvoted by viewModel.isUpvoted.collectAsState()
+
     LaunchedEffect(Unit) {
-        viewModel.fetchPost(context,postId,{}){
+        viewModel.fetchPost(context,postId,{
+        }){
             Toast.makeText(context,it,Toast.LENGTH_SHORT).show()
         }
     }
@@ -161,7 +165,7 @@ fun PostDetailScreen(
                 modifier = Modifier.size(56.dp)
             ) {
                 Icon(
-                    imageVector = if (showReplyInput) Icons.Default.Close else Icons.Default.Reply,
+                    imageVector = if (showReplyInput) Icons.Default.Close else Icons.AutoMirrored.Filled.Reply,
                     contentDescription = if (showReplyInput) "Close Reply" else "Reply",
                     modifier = Modifier.size(24.dp)
                 )
@@ -187,8 +191,16 @@ fun PostDetailScreen(
                 item {
                     PostDetailCard(
                         post = post,
-                        isUpvoted = post.upvotedBy.contains(currentUserId),
-                        onUpvote = { onUpvotePost(post._id) },
+                        isUpvoted = isUpvoted,
+                        onUpvote = {
+                            if (viewModel.canUpvoteNow()) {
+                                viewModel.upvoteToPost(postId = postId,context, onSuccess = {
+                                }, onFailure = {
+                                    Toast.makeText(context,it,Toast.LENGTH_SHORT).show()
+                                })
+
+                            }
+                            },
                         onReply = {
                             showReplyInput = true
                             replyingTo = null
@@ -209,7 +221,9 @@ fun PostDetailScreen(
                             replyingToId = replyingTo,
                             onSendReply = {
                                 if (replyText.isNotBlank()) {
-                                    onReply(replyText, replyingTo)
+                                    viewModel.replyToPost(replyContent = replyText, postId = postId,context = context, onSuccess = {}){
+                                        Toast.makeText(context,it,Toast.LENGTH_SHORT).show()
+                                    }
                                     replyText = ""
                                     showReplyInput = false
                                     replyingTo = null
@@ -770,19 +784,23 @@ fun getCategoryColor(category: String): Color {
 
 fun formatTimeAgo(dateString: String): String {
     return try {
-        val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        val date = format.parse(dateString)
+        val utcFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        utcFormat.timeZone = TimeZone.getTimeZone("UTC") // parse as UTC
+        val date = utcFormat.parse(dateString)
         val now = Date()
+
         val diff = now.time - (date?.time ?: 0)
 
         when {
-            diff < 60000 -> "Just now"
-            diff < 3600000 -> "${diff / 60000}m ago"
-            diff < 86400000 -> "${diff / 3600000}h ago"
-            diff < 604800000 -> "${diff / 86400000}d ago"
-            else -> "${diff / 604800000}w ago"
+            diff < 60_000 -> "Just now"
+            diff < 3_600_000 -> "${diff / 60_000}m ago"
+            diff < 86_400_000 -> "${diff / 3_600_000}h ago"
+            diff < 604_800_000 -> "${diff / 86_400_000}d ago"
+            else -> "${diff / 604_800_000}w ago"
         }
     } catch (e: Exception) {
         "Recently"
     }
 }
+
+

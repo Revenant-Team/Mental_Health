@@ -1,5 +1,7 @@
 package com.example.metalhealthapp.Model
 
+import kotlinx.serialization.Serializable
+
 
 data class GetPostRepliesResponse(
     val success: Boolean,
@@ -33,4 +35,16 @@ data class ReplyMetadata(
 data class ReplyEngagement(
     val upvotes: Int = 0,
     val childReplies: Int = 0
+)
+
+
+//reply to post models
+data class ReplyToPostResp(
+    val success: Boolean,
+    val message : String,
+)
+
+@Serializable
+data class ReplyRequest(
+    val content: String
 )
