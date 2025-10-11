@@ -3,6 +3,7 @@
 package com.example.resourcehub
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -23,7 +24,8 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ResourceHubScreen(modifier: Modifier=Modifier) {
+fun ResourceHubScreen(onclickYtVideo : ()->Unit = {},
+                      modifier: Modifier=Modifier) {
     val lightPurple = Color(0xFFE8E0FF)
     val lightBlue = Color(0xFFE0F2FF)
     val lightGreen = Color(0xFFE0FFF0)
@@ -59,7 +61,8 @@ fun ResourceHubScreen(modifier: Modifier=Modifier) {
                     title = "Videos",
                     icon = Icons.Default.Videocam,
                     backgroundColor = lightBlue,
-                    iconColor = blue
+                    iconColor = blue,
+                    onclick = onclickYtVideo
                 )
             }
             item {
@@ -187,10 +190,12 @@ fun CategoryCard(
     title: String,
     icon: ImageVector,
     backgroundColor: Color,
-    iconColor: Color
+    iconColor: Color,
+    onclick : ()->Unit = {}
 ) {
     Card(
         modifier = Modifier
+            .clickable(enabled = true, onClick = onclick)
             .width(100.dp)
             .height(80.dp),
         shape = RoundedCornerShape(16.dp),

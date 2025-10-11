@@ -15,7 +15,9 @@ import com.example.metalhealthapp.Model.ReplyRequest
 import com.example.metalhealthapp.Model.ReplyToPostResp
 import com.example.metalhealthapp.Model.CreateUpvoteReponse
 import com.example.metalhealthapp.Model.FetchUpvotesResponse
+import com.example.metalhealthapp.Model.RecommendedPostsResponse
 import com.example.metalhealthapp.Model.UserSignInReq
+import com.example.metalhealthapp.Model.YTVideoResponse
 import org.json.JSONObject
 import javax.inject.Inject
 
@@ -245,6 +247,55 @@ class Repo @Inject constructor(private val api: Apis) {
                 Result.failure(Exception("Failed to chat with bot: $errorMessage"))
             }
         }catch (e : Exception){
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchYTVideos(authHeader: String) : Result<YTVideoResponse>{
+        return try {
+            val response = api.fetchYtVideos(authHeader = authHeader)
+            if (response.isSuccessful){
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
+                }else{
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = try {
+                    val jsonObject = JSONObject(errorBody)
+                    jsonObject.getString("message")
+                } catch (e: Exception) {
+                    "Unknown error"
+                }
+                Result.failure(Exception("Failed to fetch youtube videos: $errorMessage"))
+                }
+            }
+        catch (e : Exception){
+            Result.failure(e)
+        }
+
+    }
+
+    //fetching recommended posts
+    suspend fun fetchRecommendedPosts(authHeader: String) : Result<RecommendedPostsResponse>{
+        return try {
+            val response = api.fetchRecommendedPosts(authHeader = authHeader)
+
+            if (response.isSuccessful){
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
+                }else{
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = try {
+                    val jsonObject = JSONObject(errorBody)
+                    jsonObject.getString("message")
+                } catch (e: Exception) {
+                    "Unknown error"
+                }
+                Result.failure(Exception("Failed to fetch recommended posts: $errorMessage"))
+                }
+            }
+        catch (e : Exception) {
             Result.failure(e)
         }
     }

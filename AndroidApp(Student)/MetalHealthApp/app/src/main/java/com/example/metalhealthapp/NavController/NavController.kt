@@ -11,12 +11,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.metalhealthapp.Screens.AuthPages.SignIn.SignInScreen
 import com.example.metalhealthapp.Screens.ControlScreen.ControlScreen
 import com.example.metalhealthapp.Screens.HomeScreen.StressCheckScreen
 import com.example.metalhealthapp.Screens.HomeScreen.StressCheckScreenFun
 import com.example.metalhealthapp.Screens.PeerSupportScreen.PostDetailCard
 import com.example.metalhealthapp.Screens.PeerSupportScreen.PostDetailScreen
+import com.example.metalhealthapp.Screens.ResourceHub.YouTubeVideoApp
 import com.example.metalhealthapp.Utils.TokenManager
 import com.example.metalhealthapp.Utils.extractUserIdFromJWT
 
@@ -58,6 +60,9 @@ fun NavController(modifier: Modifier = Modifier) {
                 userid?:"",
                 onBackClick = {navController.navigateUp()}
             )
+        }
+        composable(route= Screen.YTVIDEOSCREEN.name){
+            YouTubeVideoApp(viewModel = hiltViewModel(), navController = navController)
         }
     }
 }

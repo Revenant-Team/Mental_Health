@@ -139,3 +139,17 @@ data class FetchUpvoteData(
     val upvotes : Number,
     val upvoted : Boolean
 )
+
+data class RecommendedPostsResponse(
+    val success : Boolean,
+    val data : RecommendedPostsData
+)
+
+data class RecommendedPostsData(
+    val tags : List<String>,
+    val recommendedPosts : List<RecommendedPostIds>
+)
+
+data class RecommendedPostIds(
+    val id : String
+)

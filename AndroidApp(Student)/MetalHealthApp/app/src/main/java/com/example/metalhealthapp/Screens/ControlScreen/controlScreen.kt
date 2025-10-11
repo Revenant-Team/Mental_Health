@@ -1,6 +1,7 @@
 package com.example.metalhealthapp.Screens.ControlScreen
 
 import ChatBotScreen
+import ChatbotScreen
 import CounselorsScreen
 import CreatePostScreen
 import HomeScreen
@@ -53,6 +54,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.metalhealthapp.NavController.Screen
 import com.example.resourcehub.ResourceHubScreen
@@ -73,7 +75,7 @@ fun ControlScreen(navController: NavController,
 //            }
 
             when(selectedTab.value){
-//                "chatbot"-> topBar(selectedTab.value)
+                "AI Assist"-> topBar(selectedTab.value)
                 "Home"->topBar(selectedTab.value)
                 "Community"-> topBar(selectedTab.value)
                 "Counsellors"-> topBar(selectedTab.value)
@@ -91,7 +93,7 @@ fun ControlScreen(navController: NavController,
     ) { paddingValues ->
         when (selectedTab.value) {
             "Home" -> HomeScreen(onStressCheckclick = {navController.navigate(Screen.STRESSCHECK.name)},modifier.padding(paddingValues))
-            "AI Assist" -> WebViewScreen(modifier.padding(paddingValues))
+            "AI Assist" -> ChatbotScreen(hiltViewModel(),modifier.padding(paddingValues))
             "Community"-> {
                     PeerSupportScreen(
                         viewModel = hiltViewModel(),
@@ -102,7 +104,7 @@ fun ControlScreen(navController: NavController,
 //                PeerSupportScreen(modifier.padding(paddingValues))
             }
             "Counsellors" -> CounselorsScreen(modifier.padding(paddingValues))
-            "Resource Hub" -> ResourceHubScreen(modifier.padding(paddingValues))
+            "Resource Hub" -> ResourceHubScreen(onclickYtVideo = {navController.navigate(Screen.YTVIDEOSCREEN.name)},modifier.padding(paddingValues))
         }
     }
 }

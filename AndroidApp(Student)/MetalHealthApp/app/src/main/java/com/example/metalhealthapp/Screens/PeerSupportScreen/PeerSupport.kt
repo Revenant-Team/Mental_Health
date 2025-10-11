@@ -49,19 +49,27 @@ fun PeerSupportScreen(
 ) {
     val context = LocalContext.current
     val posts by viewModel.posts.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    var selectedChip by remember { mutableStateOf("All") }
     LaunchedEffect(Unit) {
         viewModel.fetchPosts{
             Toast.makeText(context,it,Toast.LENGTH_SHORT).show()
         }
-
     }
+
+    LaunchedEffect(selectedChip) {
+        viewModel.fetchRecommendedPosts(context, onSuccess = {
+    }, onError = {
+        Toast.makeText(context,it,Toast.LENGTH_SHORT).show()
+            Log.d("PeerError",it.toString())
+        })}
 
     val purple = Color(0xFF7C3AED)
     val lightPurple = Color(0xFFF3F4F6)
     val blue = Color(0xFF3B82F6)
 
     Box(modifier = modifier.fillMaxSize()) {
-        if(posts.isEmpty()){
+        if(posts.isEmpty() || isLoading ){
             CircularProgressIndicator(Modifier.align(Alignment.Center))
         }else{
             Log.d("posts",posts.toString())
@@ -72,6 +80,23 @@ fun PeerSupportScreen(
                 contentPadding = PaddingValues(bottom = 80.dp) // Extra padding for FAB
             ) {
                 item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val chips = listOf("All", "Recommended")
+                        chips.forEach { chip ->
+                            FilterChip(
+                                selected = selectedChip == chip,
+                                onClick = { selectedChip = chip },
+                                label = { Text(chip) }
+                            )
+                        }
+                    }
+                }
+                item {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
                 items(posts){it->
@@ -80,8 +105,8 @@ fun PeerSupportScreen(
                         timeAgo = "2h ago",
                         content = it.content,
                         tags = it.tags,
-                        repliesCount = 8,
-                        helpfulCount = 12,
+                        repliesCount = it.engagement.totalReplies,
+                        helpfulCount = it.engagement.upvotes,
                         avatarColor = blue,
                         onPostClick = {navController.navigate(route = "${Screen.POSTDETAILSCREEN.name}/${it._id}")},
                         modifier= Modifier
@@ -154,7 +179,9 @@ fun CreatePostScreen(
     val context = LocalContext.current
     var postText by remember { mutableStateOf("") }
     var selectedTags by remember { mutableStateOf(setOf<String>()) }
-    var isAnonymous by remember { mutableStateOf(true) }
+    var postTitle by remember { mutableStateOf("") }
+    val categories = listOf("Academic", "Personal", "Social", "Health", "Career", "Other")
+    var selectedCategory by remember { mutableStateOf<String>("Other") }
 
     val purple = Color(0xFF7C3AED)
     val lightPurple = Color(0xFFF3F4F6)
@@ -189,10 +216,10 @@ fun CreatePostScreen(
 
                             if (postText.isNotBlank()) {
                                 val createPost = CreatePostReq(
-                                    title = "test",
-                                    category = "Academic" ,
+                                    title = postTitle,
+                                    category = selectedCategory ,
                                     content = postText,
-                                    tags = listOf("anxiety")
+                                    tags = selectedTags.toList()
                                 )
                                 Log.d("createPost",createPost.toString())
                                 viewModel.createPost(context,createPost){
@@ -240,53 +267,101 @@ fun CreatePostScreen(
             }
 
             // Anonymous Toggle
+//            item {
+//                Card(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    shape = RoundedCornerShape(12.dp),
+//                    colors = CardDefaults.cardColors(containerColor = lightPurple),
+//                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+//                ) {
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(16.dp),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.SpaceBetween
+//                    ) {
+//                        Row(
+//                            verticalAlignment = Alignment.CenterVertically
+//                        ) {
+//                            Icon(
+//                                imageVector = if (isAnonymous) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+//                                contentDescription = "Anonymous",
+//                                tint = purple,
+//                                modifier = Modifier.size(20.dp)
+//                            )
+//                            Spacer(modifier = Modifier.width(12.dp))
+//                            Column {
+//                                Text(
+//                                    text = if (isAnonymous) "Post Anonymously" else "Post with Profile",
+//                                    fontSize = 14.sp,
+//                                    fontWeight = FontWeight.Medium,
+//                                    color = Color.Black
+//                                )
+//                                Text(
+//                                    text = if (isAnonymous) "Your identity will be hidden" else "Your profile will be visible",
+//                                    fontSize = 12.sp,
+//                                    color = Color.Gray
+//                                )
+//                            }
+//                        }
+//                        Switch(
+//                            checked = isAnonymous,
+//                            onCheckedChange = { isAnonymous = it },
+//                            colors = SwitchDefaults.colors(
+//                                checkedThumbColor = purple,
+//                                checkedTrackColor = purple.copy(alpha = 0.3f)
+//                            )
+//                        )
+//                    }
+//                }
+//            }
+
+            // Title and Category Section
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = lightPurple),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                ) {
-                    Row(
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    // Title Input
+
+                    Text(
+                        text = "Post Title",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = postTitle,
+                        onValueChange = { postTitle = it },
+                        placeholder = { Text("Enter your title here") },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = if (isAnonymous) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = "Anonymous",
-                                tint = purple,
-                                modifier = Modifier.size(20.dp)
+                            .fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Category Selection
+
+
+                    Text(
+                        text = "Select Category",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(categories) { category ->
+                            FilterChip(
+                                selected = selectedCategory == category,
+                                onClick = { selectedCategory = category },
+                                label = { Text(category) },
+                                modifier = Modifier.height(36.dp)
                             )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text(
-                                    text = if (isAnonymous) "Post Anonymously" else "Post with Profile",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = Color.Black
-                                )
-                                Text(
-                                    text = if (isAnonymous) "Your identity will be hidden" else "Your profile will be visible",
-                                    fontSize = 12.sp,
-                                    color = Color.Gray
-                                )
-                            }
                         }
-                        Switch(
-                            checked = isAnonymous,
-                            onCheckedChange = { isAnonymous = it },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = purple,
-                                checkedTrackColor = purple.copy(alpha = 0.3f)
-                            )
-                        )
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
 
@@ -360,6 +435,7 @@ fun CreatePostScreen(
             }
 
             // Tags Selection
+            // Tags Selection
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -407,7 +483,35 @@ fun CreatePostScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                         }
 
-                        // Available Tags
+                        // Input for new tag
+                        var newTag by remember { mutableStateOf("") }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = newTag,
+                                onValueChange = { newTag = it },
+                                label = { Text("Add custom tag") },
+                                modifier = Modifier.weight(1f),
+                                singleLine = true
+                            )
+                            Button(
+                                onClick = {
+                                    if (newTag.isNotBlank()) {
+                                        selectedTags = selectedTags + newTag.trim()
+                                        newTag = ""
+                                    }
+                                }
+                            ) {
+                                Text("Add")
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Optional: Available preset tags for convenience
                         availableTags.chunked(3).forEach { tagRow ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -427,10 +531,7 @@ fun CreatePostScreen(
                                         modifier = Modifier.weight(1f)
                                     )
                                 }
-                                // Fill remaining space if row has less than 3 items
-                                repeat(3 - tagRow.size) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
+                                repeat(3 - tagRow.size) { Spacer(modifier = Modifier.weight(1f)) }
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                         }

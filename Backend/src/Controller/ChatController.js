@@ -6,9 +6,9 @@ const STACK_API_URL = "https://api.stack-ai.com/inference/v0/run/451d41e9-d95f-4
 const STACK_API_KEY = "b612108c-000a-4dc3-b5e0-67aac28479ce"; 
 
 const chatting = async (req, res) => {
-  const {sessionId, userMessage } = req.body;
-  const userId = req.user.id
-
+  const {userId,sessionId, userMessage } = req.body;
+  // const userId = req.user.id
+  // const {userId }= req.body
   if (!userId || !userMessage || !sessionId) {
     return res.status(400).json({ error: "userId, sessionId and userMessage are required" });
   }

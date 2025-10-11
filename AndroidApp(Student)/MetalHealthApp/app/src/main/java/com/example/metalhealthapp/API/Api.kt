@@ -16,15 +16,17 @@ import com.example.metalhealthapp.Model.ReplyRequest
 import com.example.metalhealthapp.Model.CreateUpvoteReponse
 import com.example.metalhealthapp.Model.FetchUpvoteData
 import com.example.metalhealthapp.Model.FetchUpvotesResponse
+import com.example.metalhealthapp.Model.RecommendedPostIds
+import com.example.metalhealthapp.Model.RecommendedPostsResponse
+import com.example.metalhealthapp.Model.YTVideoResponse
 import retrofit2.Response
-import retrofit2.http.Body
 //import okhttp3.Response
 import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
-
+import retrofit2.http.Body
+import retrofit2.http.Header
+import retrofit2.http.POST
 interface Apis {
 
 
@@ -84,7 +86,20 @@ interface Apis {
     @POST("api/chat/chat_with_bot")
     suspend fun chatWithBot(
         @Header("token") authHeader: String,
-        chatReq : ChatRequest
+        @Body chatReq : ChatRequest
     ) : Response<ChatResponse>
+
+    //youtube api
+    @POST("api/youtube/search")
+    suspend fun fetchYtVideos(
+        @Header("token") authHeader: String,
+    ) : Response<YTVideoResponse>
+
+
+    //fetching recommendation posts
+    @POST("api/forum/match-post")
+    suspend fun fetchRecommendedPosts(
+        @Header("token") authHeader: String
+    ): Response<RecommendedPostsResponse>
 
 }
