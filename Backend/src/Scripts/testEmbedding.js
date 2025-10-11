@@ -1,22 +1,31 @@
+// utils/testEmbedding.js
 import { pipeline } from '@xenova/transformers';
 
 let embedder;
 
+/**
+ * Generate a 1024-dimension embedding using the LLaMA v2 embed model.
+ */
 export default async function getLocalEmbedding(text) {
   if (!embedder) {
-    embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-  }
-  const output = await embedder(text, { pooling: 'mean', normalize: true });
-  
-  // output.data is usually a 2D array, flatten to 1D numeric array
-  // If output.data is nested arrays, flatten first
-  let flattened;
-  if (Array.isArray(output.data[0])) {
-    flattened = output.data.flat();
-  } else {
-    flattened = output.data;
+    console.log("🔄 Loading local embedding model (llama-text-embed-v2)...");
+  embedder = await pipeline('feature-extraction', 'Xenova/multilingual-e5-small');
+    console.log("✅ Model loaded successfully (1024 dims).");
   }
 
-  // Convert to JS array if it is a Float32Array or ArrayBuffer
-  return Array.from(flattened);
+  const output = await embedder(text, { pooling: 'mean', normalize: true });
+
+  let data = output.data || output;
+  if (Array.isArray(data[0])) {
+    data = data.flat();
+  }
+            
+  const embedding = Array.from(data);
+
+  if (!embedding.length || embedding.some(v => typeof v !== 'number')) {
+    throw new Error('Invalid embedding: not a numeric array');
+  }
+
+  return embedding;
 }
+
