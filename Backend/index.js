@@ -25,6 +25,7 @@ import upvoteRouter from './src/Routes/upvoteRoute.js';
 import viewRouter from './src/Routes/viewRoute.js';
 import youtubeRouter from './src/Routes/youtubeRoute.js';
 import chatRouter from './src/Routes/chatRoute.js';
+import counselorRouter from './src/Routes/counselorRoute.js';
 
 app.use('/api/users', userRouter);
 app.use('/api/institutes', instituteRouter);
@@ -34,7 +35,7 @@ app.use('/api/upvote',upvoteRouter);
 app.use('/api/view',viewRouter);
 app.use('/api/youtube',youtubeRouter);
 app.use('/api/chat', chatRouter);
-
+app.use('/api/counselor',counselorRouter);
 
 
 app.listen(port,()=>{
