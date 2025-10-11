@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 // models/Chat.js
 
-
 const MessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "bot"], required: true },
   content: { type: String, required: true },
@@ -22,3 +21,5 @@ const ChatSchema = new mongoose.Schema({
 });
 
 export default mongoose.model("Chat", ChatSchema);
+
+
