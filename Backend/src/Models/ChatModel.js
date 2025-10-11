@@ -4,15 +4,21 @@ import mongoose from "mongoose";
 
 
 const MessageSchema = new mongoose.Schema({
-  role: String, // "user" or "bot"
-  content: String,
-  timestamp: { type: Date, default: Date.now },
+  role: { type: String, enum: ["user", "bot"], required: true },
+  content: { type: String, required: true },
+  timestamp: { type: Date, default: Date.now }
+});
+
+const SessionSchema = new mongoose.Schema({
+  sessionId: { type: String, required: true },
+  startedAt: { type: Date, default: Date.now },
+  endedAt: { type: Date },
+  messages: [MessageSchema]
 });
 
 const ChatSchema = new mongoose.Schema({
-  userId: String,
-  conversation: [MessageSchema],
-  createdAt: { type: Date, default: Date.now },
+  userId: { type: String, required: true },
+  sessions: [SessionSchema]
 });
 
 export default mongoose.model("Chat", ChatSchema);
