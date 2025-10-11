@@ -23,6 +23,7 @@ import postRouter from './src/Routes/postRoute.js';
 import replyRouter from './src/Routes/replyRoute.js';
 import upvoteRouter from './src/Routes/upvoteRoute.js';
 import viewRouter from './src/Routes/viewRoute.js';
+import youtubeRouter from './src/Routes/youtubeRoute.js';
 
 app.use('/api/users', userRouter);
 app.use('/api/institutes', instituteRouter);
@@ -30,6 +31,7 @@ app.use('/api/forum', postRouter);
 app.use('/api/reply',replyRouter);
 app.use('/api/upvote',upvoteRouter);
 app.use('/api/view',viewRouter);
+app.use('/api/youtube',youtubeRouter);
 
 app.listen(port,()=>{
     console.log(`App running on port ${port}`);
